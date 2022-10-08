@@ -1,5 +1,7 @@
 ### Hi there 👋
 ![programming gif](https://546kqu4mh4.execute-api.us-east-1.amazonaws.com/lambda_fitzhavey_readme-production/search?query=programmer)
+![programming gif](https://546kqu4mh4.execute-api.us-east-1.amazonaws.com/lambda_fitzhavey_readme-production/search?query=programmer)
+![programming gif](https://546kqu4mh4.execute-api.us-east-1.amazonaws.com/lambda_fitzhavey_readme-production/search?query=programmer)
 
 
 #### How this works
