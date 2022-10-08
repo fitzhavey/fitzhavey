@@ -1,5 +1,5 @@
 ### Hi there 👋
-
+![programming gif](https://media1.giphy.com/media/RbDKaczqWovIugyJmW/giphy.gif?cid=ecf05e47n9yywgvpdcha82n18nwzxq3rd9ml99tm4u9ub7pl&rid=giphy.gif&ct=g)
 <!--
 **michaelfitzhavey/michaelfitzhavey** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
