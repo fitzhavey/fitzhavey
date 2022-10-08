@@ -10,16 +10,16 @@ module.exports.handler = async (event) => {
 	const GIPHY_API_KEY = process.env.GIPHY_API_KEY;
 	let searchTerm = '';
 
-	if (event.queryStringParameters && event.queryStringParameters['term']) {
-		searchTerm = event.queryStringParameters['term'];
+	if (event.queryStringParameters && event.queryStringParameters['query']) {
+		searchTerm = event.queryStringParameters['query'];
 	}
 
 	const offset = randomIntFromInterval(0, 13);
 	console.log('offset: ', offset);
-	const requestUrl = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&${offset}=0&rating=g&lang=en`
+	const requestUrl = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=${offset}&rating=g&lang=en`
 	const response = await axios.get(requestUrl);
 
-	const gifUrl = response.data.data[0].embed_url
+	const gifUrl = response.data.data[0].images.original.url;
 
 	const imageBase64 = await axios
 		.get(gifUrl, { responseType: 'arraybuffer' })
@@ -29,6 +29,10 @@ module.exports.handler = async (event) => {
 	return {
 		statusCode: 200,
 		isBase64Encoded: true,
+		headers: {
+			'Content-Type': 'image/gif',
+			'Cache-Control': 'no-store'
+		},
 		body: imageBase64
 	}
 }
