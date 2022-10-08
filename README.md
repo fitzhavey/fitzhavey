@@ -1,5 +1,5 @@
 ### Hi there 👋
-![programming gif](https://media1.giphy.com/media/RbDKaczqWovIugyJmW/giphy.gif?cid=ecf05e47n9yywgvpdcha82n18nwzxq3rd9ml99tm4u9ub7pl&rid=giphy.gif&ct=g)
+![programming gif](https://546kqu4mh4.execute-api.us-east-1.amazonaws.com/lambda_fitzhavey_readme-production/search?term=programmer)
 <!--
 **michaelfitzhavey/michaelfitzhavey** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 
@@ -14,3 +14,11 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+
+#### How this works
+The `/terraform` directory manages the infrastuture to host the lambda in the `/random-gif` directory.
+
+#### Terraform
+
+#### Lambda
+The lambda uses the

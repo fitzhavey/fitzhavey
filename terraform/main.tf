@@ -58,6 +58,12 @@ resource "aws_lambda_function" "random_gif" {
   runtime = "nodejs12.x"
   handler = "index.handler"
 
+  environment {
+    variables = {
+      GIPHY_API_KEY = "2iLbUA6GR9GQuyrWrPJx3PPs16TjDyFL"
+    }
+  }
+
   // Changes whenever the output code changes
   source_code_hash = data.archive_file.lambda_random_gif.output_base64sha256
 
@@ -84,8 +90,7 @@ resource "aws_iam_role" "lambda_exec" {
       Principal = {
         Service = "lambda.amazonaws.com"
       }
-      }
-    ]
+      }]
   })
 }
 
