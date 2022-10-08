@@ -14,7 +14,7 @@ module.exports.handler = async (event) => {
 		searchTerm = event.queryStringParameters['query'];
 	}
 
-	const offset = randomIntFromInterval(0, 13);
+	const offset = randomIntFromInterval(0, 25);
 	const requestUrl = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=${offset}&rating=g&lang=en`
 	const response = await axios.get(requestUrl);
 
