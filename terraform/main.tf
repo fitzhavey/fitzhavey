@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 4.0.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.1.0"
-    }
     archive = {
       source  = "hashicorp/archive"
       version = "~> 2.2.0"
@@ -23,56 +19,59 @@ provider "aws" {
   region = var.aws_region
 }
 
-resource "random_pet" "lambda_bucket_name" {
-  prefix = "learn-terraform-functions"
-  length = 4
+// Name the bucket and prefix for other AWS resources
+resource "aws_s3_bucket" "lambda_bucket" {
+  bucket = "lambda-fitzhavey-readme"
 }
 
-resource "aws_s3_bucket" "lambda_bucket" {
-  bucket = random_pet.lambda_bucket_name.id
-}
 
 resource "aws_s3_bucket_acl" "bucket_acl" {
   bucket = aws_s3_bucket.lambda_bucket.id
   acl    = "private"
 }
 
-data "archive_file" "lambda_hello_world" {
+// Generates a zip of the lambda function
+data "archive_file" "lambda_random_gif" {
   type = "zip"
 
-  source_dir  = "${path.module}/../lambda"
-  output_path = "${path.module}/lambda.zip"
+  source_dir  = "${path.module}/../random-gif"
+  output_path = "${path.module}/random-gif.zip"
 }
 
-resource "aws_s3_object" "lambda_hello_world" {
+// Uploads the zip to our S3 bucket
+resource "aws_s3_object" "lambda_random_gif" {
   bucket = aws_s3_bucket.lambda_bucket.id
 
   key    = "readme-lambda.zip"
-  source = data.archive_file.lambda_hello_world.output_path
+  source = data.archive_file.lambda_random_gif.output_path
 
-  etag = filemd5(data.archive_file.lambda_hello_world.output_path)
+  etag = filemd5(data.archive_file.lambda_random_gif.output_path)
 }
 
-resource "aws_lambda_function" "hello_world" {
-  function_name = "HelloWorld"
+// Configures the lambda function to use the bucket object containing the function code
+resource "aws_lambda_function" "random_gif" {
+  function_name = "RandomGif"
 
   s3_bucket = aws_s3_bucket.lambda_bucket.id
-  s3_key    = aws_s3_object.lambda_hello_world.key
+  s3_key    = aws_s3_object.lambda_random_gif.key
 
   runtime = "nodejs12.x"
-  handler = "hello.handler"
+  handler = "index.handler"
 
-  source_code_hash = data.archive_file.lambda_hello_world.output_base64sha256
+  // Changes whenever the output code changes
+  source_code_hash = data.archive_file.lambda_random_gif.output_base64sha256
 
   role = aws_iam_role.lambda_exec.arn
 }
 
-resource "aws_cloudwatch_log_group" "hello_world" {
-  name = "/aws/lambda/${aws_lambda_function.hello_world.function_name}"
+// Defines a log group to store log messages from the lambda function
+resource "aws_cloudwatch_log_group" "random_gif" {
+  name = "/aws/lambda/${aws_lambda_function.random_gif.function_name}"
 
   retention_in_days = 30
 }
 
+// Defines an IAM role that allows lambda to access resources on your AWS account
 resource "aws_iam_role" "lambda_exec" {
   name = "serverless_lambda"
 
@@ -90,20 +89,23 @@ resource "aws_iam_role" "lambda_exec" {
   })
 }
 
+// Attaches a policy to the IAM role created above, allowing us to write to cloudwatch logs
 resource "aws_iam_role_policy_attachment" "lambda_policy" {
   role       = aws_iam_role.lambda_exec.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+// Defines a name for the API gateway and sets its protocol to HTTP
 resource "aws_apigatewayv2_api" "lambda" {
-  name          = "serverless_lambda_gw"
+  name          = "lambda_fitzhavey_readme"
   protocol_type = "HTTP"
 }
 
+// Sets up application stages for the API Gateway - such as "Test", "Staging", and "Production". The example configuration defines a single stage, with access logging enabled.
 resource "aws_apigatewayv2_stage" "lambda" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  name        = "serverless_lambda_stage"
+  name        = "${aws_apigatewayv2_api.lambda.name}-production"
   auto_deploy = true
 
   access_log_settings {
@@ -125,31 +127,35 @@ resource "aws_apigatewayv2_stage" "lambda" {
   }
 }
 
-resource "aws_apigatewayv2_integration" "hello_world" {
+// Configures the API Gateway to use your Lambda function.
+resource "aws_apigatewayv2_integration" "random_gif" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  integration_uri    = aws_lambda_function.hello_world.invoke_arn
+  integration_uri    = aws_lambda_function.random_gif.invoke_arn
   integration_type   = "AWS_PROXY"
   integration_method = "POST"
 }
 
-resource "aws_apigatewayv2_route" "hello_world" {
+// Maps an HTTP request to the lambda function
+resource "aws_apigatewayv2_route" "random_gif" {
   api_id = aws_apigatewayv2_api.lambda.id
 
-  route_key = "GET /hello"
-  target    = "integrations/${aws_apigatewayv2_integration.hello_world.id}"
+  route_key = "GET /search"
+  target    = "integrations/${aws_apigatewayv2_integration.random_gif.id}"
 }
 
+// Defines a log group to store access logs for the gateway stage
 resource "aws_cloudwatch_log_group" "api_gw" {
   name = "/aws/api_gw/${aws_apigatewayv2_api.lambda.name}"
 
   retention_in_days = 30
 }
 
+// Gives API Gateway permission to invoke the lambda function
 resource "aws_lambda_permission" "api_gw" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.hello_world.function_name
+  function_name = aws_lambda_function.random_gif.function_name
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
