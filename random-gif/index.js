@@ -18,7 +18,7 @@ module.exports.handler = async (event) => {
 	const requestUrl = `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_API_KEY}&q=${searchTerm}&limit=1&offset=${offset}&rating=g&lang=en`
 	const response = await axios.get(requestUrl);
 
-	const gifUrl = response.data.data[0].images.original.url;
+	const gifUrl = response.data.data[0].images.downsized_large.url;
 
 	const imageBase64 = await axios
 		.get(gifUrl, { responseType: 'arraybuffer' })
