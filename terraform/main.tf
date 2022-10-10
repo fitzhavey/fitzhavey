@@ -60,7 +60,8 @@ resource "aws_lambda_function" "random_gif" {
 
   environment {
     variables = {
-      GIPHY_API_KEY = "2iLbUA6GR9GQuyrWrPJx3PPs16TjDyFL"
+      // See aws_secretsmanager_secret_version block below for secrets configuration
+      GIPHY_API_KEY = data.aws_secretsmanager_secret_version.giphy_api_key.secret_string
     }
   }
 
@@ -164,4 +165,14 @@ resource "aws_lambda_permission" "api_gw" {
   principal     = "apigateway.amazonaws.com"
 
   source_arn = "${aws_apigatewayv2_api.lambda.execution_arn}/*/*"
+}
+
+// Defines a secret and stores it in aws cloud
+resource "aws_secretsmanager_secret" "giphy_api_key" {
+  name = "giphy_api_key"
+}
+
+// Defines the value of the secret in the terraform state
+data "aws_secretsmanager_secret_version" "giphy_api_key" {
+  secret_id = "giphy_api_key"
 }
