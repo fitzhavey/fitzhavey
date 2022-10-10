@@ -170,9 +170,12 @@ resource "aws_lambda_permission" "api_gw" {
 // Defines a secret and stores it in aws cloud
 resource "aws_secretsmanager_secret" "giphy_api_key" {
   name = "giphy_api_key"
+  tags = {
+    project = "fitzhavey-readme"
+  }
 }
 
 // Defines the value of the secret in the terraform state
 data "aws_secretsmanager_secret_version" "giphy_api_key" {
-  secret_id = "giphy_api_key"
+  secret_id = aws_secretsmanager_secret.giphy_api_key.name
 }
